@@ -1,0 +1,26 @@
+{
+  "name": "auctions",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "node_modules/mocha/bin/mocha test/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deanx/auctions.git"
+  },
+  "author": "Alex \"deanx\" Costa",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/deanx/auctions/issues"
+  },
+  "homepage": "https://github.com/deanx/auctions#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3"
+  },
+  "dependencies": {
+    "express": "^4.14.0"
+  }
+}
