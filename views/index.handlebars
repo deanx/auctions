@@ -1,0 +1,9 @@
+<div class='row'>
+{{#each items}}
+<div class='col-md-3'>
+  <picture>
+    <img srcset='{{this.picture}}' alt='{{this.description}}'>
+    <p>{{this.description}}</p>
+</div>
+{{/each}}
+</div>
