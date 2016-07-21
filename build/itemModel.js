@@ -10,7 +10,13 @@ var schema = function schema() {
   return _mongoose2.default.Schema({
     "description": String,
     "picture": String,
-    "code": String
+    "code": String,
+    "name": String,
+    "highestBid": {
+      value: Number,
+      date: Date,
+      user: Object
+    }
   });
 };
 

@@ -36,7 +36,7 @@ var AuctionRepository = function () {
   _createClass(AuctionRepository, [{
     key: 'fetchItems',
     value: function fetchItems() {
-      return this.itemModel.find({}, '_id picture description').exec();
+      return this.itemModel.find({}, '_id picture description code name, highestBid').exec();
     }
   }, {
     key: 'findHighestBidForItem',
@@ -51,18 +51,31 @@ var AuctionRepository = function () {
     }
   }, {
     key: 'addItem',
-    value: function addItem() {
-      this.itemModel({
-
-        "description": 'Mona Lisa',
-        "picture": 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfwWiOGCFGh_gakXkbQxPn_YvBO40RKat1-JAqAP9_z7Kj1l1c2A',
-        "code": 'A0001'
-      }).save();
+    value: function addItem(item) {
+      return this.itemModel(item).save();
     }
   }, {
     key: 'clearAll',
     value: function clearAll() {
-      this.bidModel.remove({}, function (err, res) {});
+      var _this = this;
+
+      return this.bidModel.remove({}, function (err, res) {
+        _this.itemModel.remove({}, function (err, res) {});
+      });
+    }
+  }, {
+    key: 'findItem',
+    value: function findItem(item, callback) {
+      this.itemModel.findOne({ code: item.code }).exec().then(function (result) {
+        return callback(result);
+      });
+    }
+  }, {
+    key: 'saveItem',
+    value: function saveItem(item, callback) {
+      this.itemModel(item).save().then(function (result) {
+        return callback(result);
+      });
     }
   }]);
 

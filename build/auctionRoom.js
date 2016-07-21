@@ -22,22 +22,16 @@ var AuctionRoom = function () {
   }
 
   _createClass(AuctionRoom, [{
-    key: "openRoom",
-    value: function openRoom(items) {
-      var roomItems = items || this.fetchItems();
-      this.setCurrentItem(roomItems[0]);
-    }
-  }, {
     key: "fetchItems",
     value: function fetchItems(callback) {
-      return this.auctionRepository.fetchItems().then(function (result) {
+      this.auctionRepository.fetchItems().then(function (result) {
         return callback(result);
       });
     }
   }, {
     key: "setCurrentItem",
     value: function setCurrentItem(newItem) {
-      this.item = Object.assign({}, newItem);
+      this.item = newItem;
     }
   }, {
     key: "canBid",
@@ -46,27 +40,45 @@ var AuctionRoom = function () {
     }
   }, {
     key: "getHighestBid",
-    value: function getHighestBid(item, callback) {
-      this.auctionRepository.findHighestBidForItem(item).then(function (result) {
-        return callback(result);
-      });
+    value: function getHighestBid(item) {
+      return item.highestBid;
     }
   }, {
     key: "placeBid",
     value: function placeBid(item, user, value, callback) {
+      var _this = this;
+
+      var bidDate = new Date();
       this.auctionRepository.addBid({
         "item": item,
         "user": user,
         "value": value,
-        "date": new Date()
+        "date": bidDate
       }).then(function (result) {
-        return callback(result);
+        return updateHighestBid();
       });
+
+      var updateHighestBid = function updateHighestBid() {
+        return _this.auctionRepository.findItem(item, function (itemFound) {
+          createHighestBid(itemFound, value, user, bidDate);
+        });
+      };
+
+      var createHighestBid = function createHighestBid(item, value, user, date) {
+        if (!item.highestBid.value || item.highestBid.value < value) {
+
+          Object.assign(item, { highestBid: {
+              value: value, date: date,
+              user: user
+            } });
+          _this.auctionRepository.saveItem(item, callback);
+        } else callback(false);
+      };
     }
   }, {
     key: "addItem",
-    value: function addItem() {
-      this.auctionRepository.addItem();
+    value: function addItem(item) {
+      return this.auctionRepository.addItem(item);
     }
   }]);
 

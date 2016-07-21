@@ -4,6 +4,7 @@ import ItemModel from './itemModel';
 
 mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://auctiondata:data2016@ds023445.mlab.com:23445/auctiondata');
+
 export default class AuctionRepository {
   constructor() {
     this.bidModel = BidModel;
@@ -11,7 +12,7 @@ export default class AuctionRepository {
   }
 
   fetchItems() {
-    return this.itemModel.find({},'_id picture description').exec();
+    return this.itemModel.find({},'_id picture description code name, highestBid').exec();
   }
   findHighestBidForItem(item) {
     let queryPromise = this.bidModel.find({'item.code':item.code}).sort({value:-1,date:1}).limit(1).exec();
@@ -22,19 +23,22 @@ export default class AuctionRepository {
     return this.bidModel(bid).save();
   }
 
-  addItem() {
-    this.itemModel(
-      {
-
-          "description": 'Mona Lisa',
-          "picture": 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfwWiOGCFGh_gakXkbQxPn_YvBO40RKat1-JAqAP9_z7Kj1l1c2A',
-          "code": 'A0001'
-      }
-    ).save();
+  addItem(item) {
+    return this.itemModel(item).save();
   }
 
   clearAll() {
-    this.bidModel.remove({}, function(err, res) {
+    return this.bidModel.remove({}, (err, res) => {
+      this.itemModel.remove({}, (err, res) => {
+      });
     });
+  }
+
+  findItem(item, callback) {
+    this.itemModel.findOne({code: item.code}).exec().then(result => callback(result));
+  }
+
+  saveItem(item, callback) {
+    this.itemModel(item).save().then(result => callback(result));
   }
 }

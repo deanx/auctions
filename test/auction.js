@@ -10,75 +10,80 @@ describe('Auction user test', () => {
           So that I can participate in the auction`, () => {
 
             context('􀀊􀂋􀂘􀂇􀂐􀀃􀀌􀀃􀂃􀂏􀀃􀂋􀂐􀀃􀂖􀂊􀂇􀀃􀂃􀂗􀂅􀂖􀂋􀂑􀂐􀀃􀂔􀂑􀂑􀂏Given I am in the auction room', () => {
-              before(() => {
-                auctionRepository.clearAll();
-                let user = {'name':'John Doe'};
-                let item = {code: 'A0001', name:'item one',picture: 'a_picture', description: 'my item'};
-                let value = 123.34;
-                auctionRoom.placeBid(item, user, value);
-              });
-
               let auctionRoom = new AuctionRoom();
               let auctionRepository = new AuctionRepository();
-              let fetchItems = sinon.stub(auctionRoom, 'fetchItems');
-              fetchItems.returns([{name:'item one',picture: 'a_picture', description: 'my item', code:'A0001'}]);
 
-              auctionRoom.openRoom();
+              before((done) => {
+                auctionRepository.clearAll().then(() => {
+                  let item = {code: 'A0001', name:'item one',picture: 'a_picture', description: 'my item',
+                  highestBid: {value:100.00, date: '2016-07-18T04:11:47.468Z',
+                  user:{name: 'John Doe'}}};
+                  auctionRoom.addItem(item).then(done());
+                });
+              });
 
-              it('Then I see the current item picture, description and name', () => {
-                should.exist(auctionRoom);
-                should.exist(auctionRoom.item);
-                should.exist(auctionRoom.item.picture);
-                should.exist(auctionRoom.item.description);
-                should.exist(auctionRoom.item.name);
+              it('Then I see the current item picture, description and name', (done) => {
+                let validations = (item) => {
+                  should.exist(item.picture);
+                  should.exist(item.name);
+                  should.exist(item.description);
+                  done();
+                };
 
-                fetchItems.restore();
+                auctionRepository.findItem({code:'A0001'}, validations);
+
               });
 
 
                 it('And I see the current highest bid with a button to place a new bid', (done) => {
-
-                auctionRoom.getHighestBid(auctionRoom.item, (result) => {
-                  should.equal(result[0].value,123.34);
+                auctionRepository.findItem({code:'A0001'}, (item) => {
+                  should.equal(auctionRoom.getHighestBid(item).value,100.00);
+                  auctionRoom.canBid({},{}).should.be.true;
                   done();
                 });
 
-                auctionRoom.canBid({},{}).should.be.true;
-              }).timeout(10000);
+              });
 
               context('When I place a bid on an item', () => {
-                beforeEach(() => {
-                  auctionRepository.clearAll();
+                beforeEach((done) => {
+                  auctionRepository.clearAll().then(() => {
+                    let item = {code: 'A0001', name:'item one',picture: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfwWiOGCFGh_gakXkbQxPn_YvBO40RKat1-JAqAP9_z7Kj1l1c2A', description: 'my item',
+                    highestBid: {value:100.00, date: '2016-07-18T04:11:47.468Z',
+                    user:{name: 'John Doe'}}};
+                    auctionRoom.addItem(item).then(done());
+                  });
+
                 });
                 describe('And I am the only bidder', () => {
                   it('Then I am the highest bidder', (done) => {
                     let user = {'name':'John Doe'};
-                    let item = {code: 'A0001', name:'item one',picture: 'a_picture', description: 'my item'};
-                    let value = 100;
-                    auctionRoom.placeBid(item, user, value, (result) => {
-                      auctionRoom.getHighestBid(item, result => {
-                        should.equal(result[0].user.name, user.name);
+                    let item = {code: 'A0001', name:'item one',picture: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfwWiOGCFGh_gakXkbQxPn_YvBO40RKat1-JAqAP9_z7Kj1l1c2A', description: 'my item'};
+                    let value = 120;
+
+                    auctionRoom.placeBid(item, user, value, () => {
+                      auctionRepository.findItem(item, (result) => {
+                        should.equal(120, result.highestBid.value);
                         done();
                       });
                     });
-
-                  });
+                  }).timeout(5000);;
                 });
                 describe('And I am not the only bidder', () => {
                   describe('And my bid was placed first', () => {
                     it('Then I am the highest bidder', (done) => {
                       let userOne = {'name':'John Doe'};
                       let userTwo = {'name': 'Jane Doe'};
-                      let item = {code: 'A0001', name:'item one',picture: 'a_picture', description: 'my item'};
-                      let value = 100;
+                      let item = {code: 'A0001', name:'item one',picture: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfwWiOGCFGh_gakXkbQxPn_YvBO40RKat1-JAqAP9_z7Kj1l1c2A', description: 'my item'};
+                      let value = 150;
 
-                      let bidOne = auctionRoom.placeBid(item, userOne, value);
-                      let bidTwo = auctionRoom.placeBid(item, userTwo, value);
-                      Promise.all([bidOne, bidTwo]).then(function (results) {
-                        auctionRoom.getHighestBid(item, result => {
-                          should.equal(result[0].user.name, userOne.name);
-                          done();
-                        });
+
+                      Promise.resolve(auctionRoom.placeBid(item, userOne, value)).then(() => {
+                          auctionRoom.placeBid(item, userOne, value, () => {
+                            auctionRepository.findItem(item, (result) => {
+                              should.equal(result.highestBid.value, 150);
+                              done();
+                            });
+                          });
                       });
                     }).timeout(5000);
                   });
@@ -88,17 +93,21 @@ describe('Auction user test', () => {
                       let userOne = {'name':'John Doe'};
                       let userTwo = {'name': 'Jane Doe'};
                       let item = {code: 'A0001', name:'item one',picture: 'a_picture', description: 'my item'};
-                      let value = 100;
+                      let value = 200;
 
+                      let secondBid = () => {
+                        auctionRoom.placeBid(item, userOne, value, () => validateUser());
+                      };
 
-                      let bidTwo = auctionRoom.placeBid(item, userTwo, value);
-                      let bidOne = auctionRoom.placeBid(item, userOne, value);
-                      Promise.all([bidTwo, bidOne]).then(function (results) {
-                        auctionRoom.getHighestBid(item, result => {
-                          should.equal(result[0].user.name, userTwo.name);
+                      let validateUser = () => {
+                        auctionRepository.findItem(item, (result) => {
+                          should.equal(result.highestBid.user.name, userTwo.name);
                           done();
                         });
-                      });
+                      };
+
+                      auctionRoom.placeBid(item, userTwo, value, secondBid());
+
                     }).timeout(5000);
                   });
                 });

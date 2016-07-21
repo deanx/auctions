@@ -3,7 +3,12 @@
 <div class='col-md-3'>
   <picture>
     <img srcset='{{this.picture}}' alt='{{this.description}}'>
-    <p>{{this.description}}</p>
+    <p>{{this.description}} highest bid: {{this.highestBid.value}}</p>
+    <p>
+      Your bid: <input type='number' id='bid'/>
+      <button class='bid-button'>bid!</button>
+      <input type='hidden' value='{{this.code}}'/>
+    </p>
 </div>
 {{/each}}
 </div>
