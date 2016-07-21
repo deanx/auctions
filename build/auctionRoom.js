@@ -4,7 +4,25 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _regenerator = require("babel-runtime/regenerator");
+
+var _regenerator2 = _interopRequireDefault(_regenerator);
+
+var _assign = require("babel-runtime/core-js/object/assign");
+
+var _assign2 = _interopRequireDefault(_assign);
+
+var _asyncToGenerator2 = require("babel-runtime/helpers/asyncToGenerator");
+
+var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
+
+var _classCallCheck2 = require("babel-runtime/helpers/classCallCheck");
+
+var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+var _createClass2 = require("babel-runtime/helpers/createClass");
+
+var _createClass3 = _interopRequireDefault(_createClass2);
 
 var _AuctionRepository = require("./AuctionRepository");
 
@@ -12,21 +30,17 @@ var _AuctionRepository2 = _interopRequireDefault(_AuctionRepository);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 var AuctionRoom = function () {
   function AuctionRoom() {
-    _classCallCheck(this, AuctionRoom);
+    (0, _classCallCheck3.default)(this, AuctionRoom);
 
     this.auctionRepository = new _AuctionRepository2.default();
   }
 
-  _createClass(AuctionRoom, [{
+  (0, _createClass3.default)(AuctionRoom, [{
     key: "fetchItems",
     value: function fetchItems(callback) {
-      this.auctionRepository.fetchItems().then(function (result) {
-        return callback(result);
-      });
+      return this.auctionRepository.fetchItems();
     }
   }, {
     key: "setCurrentItem",
@@ -45,43 +59,67 @@ var AuctionRoom = function () {
     }
   }, {
     key: "placeBid",
-    value: function placeBid(item, user, value, callback) {
-      var _this = this;
+    value: function () {
+      var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(itemBidded, user, value, callback) {
+        var bidDate, item;
+        return _regenerator2.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                bidDate = new Date();
+                _context.next = 3;
+                return this.auctionRepository.addBid({
+                  "item": itemBidded,
+                  "user": user,
+                  "value": value,
+                  "date": bidDate
+                });
 
-      var bidDate = new Date();
-      this.auctionRepository.addBid({
-        "item": item,
-        "user": user,
-        "value": value,
-        "date": bidDate
-      }).then(function (result) {
-        return updateHighestBid();
-      });
+              case 3:
+                _context.next = 5;
+                return this.auctionRepository.findItem(itemBidded);
 
-      var updateHighestBid = function updateHighestBid() {
-        return _this.auctionRepository.findItem(item, function (itemFound) {
-          createHighestBid(itemFound, value, user, bidDate);
-        });
-      };
+              case 5:
+                item = _context.sent;
 
-      var createHighestBid = function createHighestBid(item, value, user, date) {
-        if (!item.highestBid.value || item.highestBid.value < value) {
+                if (!(!item.highestBid.value || item.highestBid.value < value)) {
+                  _context.next = 13;
+                  break;
+                }
 
-          Object.assign(item, { highestBid: {
-              value: value, date: date,
-              user: user
-            } });
-          _this.auctionRepository.saveItem(item, callback);
-        } else callback(false);
-      };
-    }
+                (0, _assign2.default)(item, { highestBid: {
+                    value: value, date: bidDate,
+                    user: user
+                  } });
+                _context.next = 10;
+                return this.auctionRepository.saveItem(item);
+
+              case 10:
+                return _context.abrupt("return", true);
+
+              case 13:
+                return _context.abrupt("return", false);
+
+              case 14:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function placeBid(_x, _x2, _x3, _x4) {
+        return _ref.apply(this, arguments);
+      }
+
+      return placeBid;
+    }()
   }, {
     key: "addItem",
     value: function addItem(item) {
       return this.auctionRepository.addItem(item);
     }
   }]);
-
   return AuctionRoom;
 }();
 

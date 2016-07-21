@@ -6,7 +6,7 @@ export default class AuctionRoom {
   }
 
   fetchItems(callback) {
-    this.auctionRepository.fetchItems().then(result => callback(result));
+    return this.auctionRepository.fetchItems();
   };
 
   setCurrentItem(newItem) {
@@ -21,29 +21,27 @@ export default class AuctionRoom {
     return item.highestBid;
   }
 
-  placeBid(item, user, value, callback) {
+  async placeBid(itemBidded, user, value, callback) {
     let bidDate = new Date();
-    this.auctionRepository.addBid({
-      "item": item,
+    await this.auctionRepository.addBid({
+      "item": itemBidded,
       "user": user,
       "value": value,
       "date": bidDate
-    }).then(result => updateHighestBid());
-
-    let updateHighestBid = () => this.auctionRepository.findItem(item, (itemFound) => {
-      createHighestBid(itemFound, value, user, bidDate);
     });
 
-    let createHighestBid = (item, value, user, date) => {
-        if(!item.highestBid.value || item.highestBid.value < value ) {
-
-          Object.assign(item, {highestBid: {
-            value: value, date: date,
-            user: user
-          }});
-          this.auctionRepository.saveItem(item,callback);
-        } else callback(false);
-    };
+    let item = await this.auctionRepository.findItem(itemBidded);
+  
+    if(!item.highestBid.value || item.highestBid.value < value) {
+      Object.assign(item, {highestBid: {
+        value: value, date: bidDate,
+        user: user
+      }});
+      await this.auctionRepository.saveItem(item);
+        return true;
+    } else {
+      return false;
+    }
   }
 
   addItem(item) {

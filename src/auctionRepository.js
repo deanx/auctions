@@ -3,8 +3,8 @@ import BidModel from './bidModel';
 import ItemModel from './itemModel';
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://auctiondata:data2016@ds023445.mlab.com:23445/auctiondata');
-
+//mongoose.connect('mongodb://auctiondata:data2016@ds023445.mlab.com:23445/auctiondata');
+mongoose.connect('mongodb://localhost:27017/auctiondata');
 export default class AuctionRepository {
   constructor() {
     this.bidModel = BidModel;
@@ -35,10 +35,11 @@ export default class AuctionRepository {
   }
 
   findItem(item, callback) {
-    this.itemModel.findOne({code: item.code}).exec().then(result => callback(result));
+    return this.itemModel.findOne({code: item.code}).exec();
   }
 
-  saveItem(item, callback) {
-    this.itemModel(item).save().then(result => callback(result));
+
+  saveItem(item) {
+    return this.itemModel(item).save();
   }
 }

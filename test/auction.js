@@ -30,13 +30,15 @@ describe('Auction user test', () => {
                   done();
                 };
 
-                auctionRepository.findItem({code:'A0001'}, validations);
+                auctionRepository.findItem({code:'A0001'}).then((item) => {
+                  validations(item);
+                });
 
               });
 
 
                 it('And I see the current highest bid with a button to place a new bid', (done) => {
-                auctionRepository.findItem({code:'A0001'}, (item) => {
+                auctionRepository.findItem({code:'A0001'}).then((item) => {
                   should.equal(auctionRoom.getHighestBid(item).value,100.00);
                   auctionRoom.canBid({},{}).should.be.true;
                   done();
@@ -60,8 +62,8 @@ describe('Auction user test', () => {
                     let item = {code: 'A0001', name:'item one',picture: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTfwWiOGCFGh_gakXkbQxPn_YvBO40RKat1-JAqAP9_z7Kj1l1c2A', description: 'my item'};
                     let value = 120;
 
-                    auctionRoom.placeBid(item, user, value, () => {
-                      auctionRepository.findItem(item, (result) => {
+                    auctionRoom.placeBid(item, user, value).then(() => {
+                      auctionRepository.findItem(item).then((result) => {
                         should.equal(120, result.highestBid.value);
                         done();
                       });
@@ -77,9 +79,9 @@ describe('Auction user test', () => {
                       let value = 150;
 
 
-                      Promise.resolve(auctionRoom.placeBid(item, userOne, value)).then(() => {
-                          auctionRoom.placeBid(item, userOne, value, () => {
-                            auctionRepository.findItem(item, (result) => {
+                      auctionRoom.placeBid(item, userOne, value).then(() => {
+                          auctionRoom.placeBid(item, userOne, value).then(() => {
+                            auctionRepository.findItem(item).then((result) => {
                               should.equal(result.highestBid.value, 150);
                               done();
                             });
@@ -90,23 +92,28 @@ describe('Auction user test', () => {
 
                   describe('And my bid was not placed first', () => {
                     it('Then I am not the highest bidder', (done) => {
-                      let userOne = {'name':'John Doe'};
+                      let userOne = {'name':'james Doe'};
                       let userTwo = {'name': 'Jane Doe'};
                       let item = {code: 'A0001', name:'item one',picture: 'a_picture', description: 'my item'};
                       let value = 200;
 
                       let secondBid = () => {
-                        auctionRoom.placeBid(item, userOne, value, () => validateUser());
+                        auctionRoom.placeBid(item, userOne, value).then((response) => {
+                          validateUser()
+                        });
                       };
 
                       let validateUser = () => {
-                        auctionRepository.findItem(item, (result) => {
+                        auctionRepository.findItem(item).then((result) => {
                           should.equal(result.highestBid.user.name, userTwo.name);
                           done();
                         });
                       };
 
-                      auctionRoom.placeBid(item, userTwo, value, secondBid());
+                      auctionRoom.placeBid(item, userTwo, value).then((response) => {
+
+                        secondBid()
+                      });
 
                     }).timeout(5000);
                   });
